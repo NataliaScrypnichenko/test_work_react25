@@ -1,13 +1,15 @@
-import './App.css'
+import {Outlet} from "react-router";
+import Navbar from "./components/Navbar.tsx";
 
-function App() {
+const App=() => {
 
+    return (
+        <div>
 
-  return (
-    <>
-
-    </>
-  )
-}
+            <Navbar/>
+            <Outlet/>
+        </div>
+    );
+};
 
 export default App
