@@ -1,15 +1,13 @@
-import {Outlet} from "react-router";
-import Navbar from "./components/Navbar.tsx";
+import { Outlet } from "react-router-dom";
+import Menu from "./components/Menu";
 
-const App=() => {
-
+const App = () => {
     return (
         <div>
-
-            <Navbar/>
-            <Outlet/>
+            <Menu/>
+            <Outlet/> {/* Тут відображаються вкладені сторінки */}
         </div>
     );
 };
 
-export default App
+export default App;

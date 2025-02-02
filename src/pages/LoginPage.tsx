@@ -1,12 +1,18 @@
-
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
 import { useDispatch } from "react-redux";
 import axios from "axios";
-import {login} from "../slices/AuthSlice.tsx";
-import { useNavigate} from "react-router-dom";
+import { login } from "../slices/AuthSlice"; // Переконайтеся, що шлях правильний!
+import { useNavigate } from "react-router-dom";
 
+// Описуємо типи даних для форми
+type LoginFormData = {
+    username: string;
+    password: string;
+};
+
+// Схема валідації з Joi
 const schema = Joi.object({
     username: Joi.string().required().messages({
         "string.empty": "Ім'я користувача обов'язкове",
@@ -18,29 +24,31 @@ const schema = Joi.object({
 });
 
 const LoginPage = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
         resolver: joiResolver(schema),
     });
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // @ts-ignore
-    const onSubmit = async (data):Promise<void> => {
+    // Функція обробки форми
+    const onSubmit = async (data: LoginFormData) => {
         try {
             const response = await axios.post("https://dummyjson.com/auth/login", {
                 username: data.username,
                 password: data.password,
             });
 
-            dispatch(login(response.data));
-            navigate("/profile");
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            dispatch(login(response.data)); // Передаємо дані в Redux
+            localStorage.setItem("isAuthenticated", "true"); // Зберігаємо статус логіну
+            navigate("/profile"); // Перенаправляємо користувача
+
         } catch (error) {
+            console.error("Помилка логіну:", error);
             alert("Невірні дані! Спробуйте ще раз.");
         }
     };
 
-    // @ts-ignore
     return (
         <div>
             <h1>Логін</h1>
@@ -48,14 +56,12 @@ const LoginPage = () => {
                 <div>
                     <label>Ім'я користувача</label>
                     <input {...register("username")} />
-                    {/*// @ts-ignore*/}
                     {errors.username && <p>{errors.username.message}</p>}
                 </div>
 
                 <div>
                     <label>Пароль</label>
                     <input type="password" {...register("password")} />
-                    {/*// @ts-ignore*/}
                     {errors.password && <p>{errors.password.message}</p>}
                 </div>
 
@@ -66,5 +72,6 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
 
 

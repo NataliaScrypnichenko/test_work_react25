@@ -1,9 +1,27 @@
-
-import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
+// Тип для рецепту
+interface Recipe {
+    id: number;
+    name: string;
+    description: string;
+    ingredients?: string[];
+    instructions: string;
+    tags?: string[];
+    userId: number;
+}
+
+// Тип для стану
+interface RecipesState {
+    list: Recipe[];
+    status: "idle" | "loading" | "succeeded" | "failed";
+    page: number;
+    search: string;
+    tag: string;
+}
 
 // Завантажуємо деталі рецепту
-export const fetchRecipeDetail = createAsyncThunk(
+export const fetchRecipeDetail = createAsyncThunk<Recipe, number>(
     "recipes/fetchRecipeDetail",
     async (id) => {
         const response = await axios.get(`https://dummyjson.com/recipes/${id}`);
@@ -11,20 +29,39 @@ export const fetchRecipeDetail = createAsyncThunk(
     }
 );
 
- export const recipesSlice = createSlice({
+const initialState: RecipesState = {
+    list: [],
+    status: "idle",
+    page: 1,
+    search: "",
+    tag: "",
+};
+
+export const recipesSlice = createSlice({
+    name: "recipes",
+    initialState,
+    reducers: {
+        setPage: (state, action: PayloadAction<number>) => {
+            state.page = action.payload;
+        },
+        setSearch: (state, action: PayloadAction<string>) => {
+            state.search = action.payload;
+        },
+        setTag: (state, action: PayloadAction<string>) => {
+            state.tag = action.payload;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchRecipeDetail.pending, (state) => {
                 state.status = "loading";
             })
-            .addCase(fetchRecipeDetail.fulfilled, (state, action) => {
-                // Додаємо або оновлюємо рецепт
-                // @ts-ignore
-                const recipeExists = state.list.find(r => r.id === action.payload.id);
-                if (!recipeExists) {
-                    const {payload} = action;
-                    // @ts-ignore
-                    state.list.push(payload);
+            .addCase(fetchRecipeDetail.fulfilled, (state, action: PayloadAction<Recipe>) => {
+                if (action.payload) {  // Перевіряємо, що payload існує
+                    const recipeExists = state.list.find((recipe) => recipe.id === action.payload.id);
+                    if (!recipeExists) {
+                        state.list.push(action.payload);
+                    }
                 }
                 state.status = "succeeded";
             })
@@ -32,21 +69,11 @@ export const fetchRecipeDetail = createAsyncThunk(
                 state.status = "failed";
             });
     },
-    initialState: {list: [], status: "idle", page: 1, search: "", tag: ""},
-    name: "recipes",
-    reducers: {
-        setPage: (state, action) => {
-            state.page = action.payload;
-        },
-        setSearch: (state, action) => {
-            state.search = action.payload;
-        },
-        setTag: (state, action) => {
-            state.tag = action.payload;
-        }
-    }
 });
+
 export default recipesSlice.reducer;
 export const { setPage, setSearch, setTag } = recipesSlice.actions;
+
+
 
 
